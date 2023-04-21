@@ -1,14 +1,20 @@
 #!/bin/sh
 
 #Global variables:
+
+#Field size:
 x_size=10
 y_size=40
 
+#Cursor position:
 cur_x=3
 cur_y=0
 
+#Mines and flags count:
 mines=20
 flags=$mines
+
+draw_f=0
 
 mined_flag=0
 true_flags=0
@@ -159,6 +165,8 @@ draw_game() {
 
 	#Field itself:
 	draw_field
+
+	draw_f=0
 }
 
 
@@ -192,6 +200,8 @@ reveal() {
 		done
 	fi
 }
+
+#Game inspector checks if game should end:
 
 game_inspector() {
 	local reveal_f=0
@@ -227,13 +237,17 @@ game_inspector() {
 #Controls handler:
 
 controls_handler() {
+	#Read one character from input and discard all others to avoid input lag:
 	local key
 	local discard
 	read -n 1 -t 0.001 key
 	read -t 0.001 discard
 
+	#Calculating cursor position on the field:
 	local x_f=$(($cur_x-2))
 	local y_f=$(($cur_y+1))
+
+	draw_f=1
 
 	case $key in
 	w)
@@ -264,7 +278,7 @@ controls_handler() {
 		fi 
 		;;
 	f)
-		if [[ ${F_opnd[$x_f,$y_f]} == 0 ]]; then
+		if [[ ${F_opnd[$x_f,$y_f]} == 0 ]] && (( $flags >= 1 )); then
 			flags=$(($flags-1))
 			F_opnd[$x_f,$y_f]=2
 			if [[ ${F_symbls[$x_f,$y_f]} == X ]]; then
@@ -288,12 +302,15 @@ generate_field
 
 while true
 do
-	draw_game
+	#Draw only if action from player was taken:
+	if [[ $draw_f == 1 ]]; then
+		tput rc
+		tput clear
+		draw_game
+	fi
 
 	controls_handler
 	game_inspector
 
 	sleep 0.05
-	tput rc
-	tput clear
 done
