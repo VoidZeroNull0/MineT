@@ -165,8 +165,6 @@ draw_game() {
 
 	#Field itself:
 	draw_field
-
-	draw_f=0
 }
 
 
@@ -247,37 +245,41 @@ controls_handler() {
 	local x_f=$(($cur_x-2))
 	local y_f=$(($cur_y+1))
 
-	draw_f=1
-
 	case $key in
 	w)
 		if (( $cur_x >= 4 )); then
 			cur_x=$(($cur_x-1))
+			draw_f=1
 		fi
 		;;
 	a)
 	
 		if (( $cur_y >= 1 )); then
 			cur_y=$(($cur_y-1))
+			draw_f=1
 		fi
 		;;
 			
 	s)
 		if (( $cur_x <= $x_size+1 )); then
 			cur_x=$(($cur_x+1))
+			draw_f=1
 		fi
 		;;
 	d)
 		if (( $cur_y <= $y_size-2 )); then
 			cur_y=$(($cur_y+1))
+			draw_f=1
 		fi
 		;;
 	 e)
 		if [[ ${F_opnd[$x_f,$y_f]} == 0 ]]; then 
 		 	reveal $x_f $y_f
+			draw_f=1
 		fi 
 		;;
 	f)
+		draw_f=1
 		if [[ ${F_opnd[$x_f,$y_f]} == 0 ]] && (( $flags >= 1 )); then
 			flags=$(($flags-1))
 			F_opnd[$x_f,$y_f]=2
@@ -297,6 +299,9 @@ controls_handler() {
 }
 
 generate_field
+tput rc
+tput clear
+draw_game
 
 #Main loop:
 
@@ -307,10 +312,9 @@ do
 		tput rc
 		tput clear
 		draw_game
+		draw_f=0
 	fi
 
 	controls_handler
 	game_inspector
-
-	sleep 0.05
 done
